@@ -15,7 +15,7 @@ struct TransformRequest {
     contents: String,
 }
 
-#[post("/go/to/flow", format = "json", data = "<data>")]
+#[post("/gostruct/to/flow", format = "json", data = "<data>")]
 fn transform_go_struct_to_flow(data: Json<TransformRequest>) -> JsonValue {
     match js_typify_gostruct::transform(data.contents.to_string()) {
         Ok(res) => json!({ "data": res }),

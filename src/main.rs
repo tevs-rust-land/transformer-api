@@ -65,7 +65,10 @@ fn main() -> Result<(), Error> {
     }
     .to_cors()?;
     rocket::ignite()
-        .mount("/api/v1", routes![index, transform_go_struct_to_flow])
+        .mount(
+            "/api/v1",
+            routes![index, transform_go_struct_to_flow, options],
+        )
         .register(catchers![not_found])
         .manage(cors)
         .launch();

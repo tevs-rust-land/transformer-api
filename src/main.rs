@@ -7,36 +7,13 @@ extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
+use rocket::http::Method;
 
 use rocket::response::status::BadRequest;
 use rocket_contrib::json::{Json, JsonValue};
+use rocket_cors::{AllowedHeaders, AllowedOrigins, Error};
 
-use rocket::fairing::{Fairing, Info, Kind};
-use rocket::http::{ContentType, Header};
-use rocket::{Request, Response};
-
-pub struct CORS();
-
-impl Fairing for CORS {
-    fn info(&self) -> Info {
-        Info {
-            name: "Add CORS headers to requests",
-            kind: Kind::Response,
-        }
-    }
-
-    fn on_response(&self, _request: &Request, response: &mut Response) {
-        if response.content_type() == Some(ContentType::JSON) {
-            response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
-            response.set_header(Header::new(
-                "Access-Control-Allow-Methods",
-                "POST, GET, OPTIONS",
-            ));
-            response.set_header(Header::new("Access-Control-Allow-Headers", "Content-Type"));
-            response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
-        }
-    }
-}
+use rocket::Request;
 
 #[derive(Serialize, Deserialize)]
 struct TransformRequest {
@@ -56,6 +33,11 @@ fn transform_go_struct_to_flow(
     }
 }
 
+#[options("/gostruct/to/flow")]
+fn options() -> &'static str {
+    "Demo!"
+}
+
 #[get("/")]
 fn index() -> &'static str {
     "Hello, world!"
@@ -69,10 +51,24 @@ fn not_found(req: &Request) -> JsonValue {
     })
 }
 
-fn main() {
+fn main() -> Result<(), Error> {
+    let allowed_origins = AllowedOrigins::All;
+    let cors = rocket_cors::CorsOptions {
+        allowed_origins,
+        allowed_methods: vec![Method::Get, Method::Post, Method::Options]
+            .into_iter()
+            .map(From::from)
+            .collect(),
+        allowed_headers: AllowedHeaders::some(&["Authorization", "Accept"]),
+        allow_credentials: true,
+        ..Default::default()
+    }
+    .to_cors()?;
     rocket::ignite()
-        .attach(CORS())
         .mount("/api/v1", routes![index, transform_go_struct_to_flow])
         .register(catchers![not_found])
+        .manage(cors)
         .launch();
+
+    Ok(())
 }

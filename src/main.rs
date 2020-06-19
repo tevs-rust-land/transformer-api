@@ -33,11 +33,6 @@ fn transform_go_struct_to_flow(
     }
 }
 
-#[options("/gostruct/to/flow")]
-fn options() -> &'static str {
-    "Demo"
-}
-
 #[get("/")]
 fn index() -> &'static str {
     "Hello, world!"
@@ -65,10 +60,8 @@ fn main() -> Result<(), Error> {
     }
     .to_cors()?;
     rocket::ignite()
-        .mount(
-            "/api/v1",
-            routes![index, transform_go_struct_to_flow, options],
-        )
+        .mount("/api/v1", routes![index, transform_go_struct_to_flow])
+        .mount("/", rocket_cors::catch_all_options_routes()) // mount the catch all routes
         .register(catchers![not_found])
         .manage(cors)
         .launch();

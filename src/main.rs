@@ -12,9 +12,8 @@ use rocket::response::status::BadRequest;
 use rocket_contrib::json::{Json, JsonValue};
 
 use rocket::fairing::{Fairing, Info, Kind};
-use rocket::http::{ContentType, Header, Method};
+use rocket::http::{ContentType, Header};
 use rocket::{Request, Response};
-use std::io::Cursor;
 
 pub struct CORS();
 
@@ -26,9 +25,8 @@ impl Fairing for CORS {
         }
     }
 
-    fn on_response(&self, request: &Request, response: &mut Response) {
-        if request.method() == Method::Options || response.content_type() == Some(ContentType::JSON)
-        {
+    fn on_response(&self, _request: &Request, response: &mut Response) {
+        if response.content_type() == Some(ContentType::JSON) {
             response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
             response.set_header(Header::new(
                 "Access-Control-Allow-Methods",
@@ -36,11 +34,6 @@ impl Fairing for CORS {
             ));
             response.set_header(Header::new("Access-Control-Allow-Headers", "Content-Type"));
             response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
-        }
-
-        if request.method() == Method::Options {
-            response.set_header(ContentType::Plain);
-            response.set_sized_body(Cursor::new(""));
         }
     }
 }

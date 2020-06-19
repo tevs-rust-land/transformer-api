@@ -35,7 +35,7 @@ fn transform_go_struct_to_flow(
 
 #[options("/gostruct/to/flow")]
 fn options() -> &'static str {
-    "Demo!"
+    "Demo"
 }
 
 #[get("/")]

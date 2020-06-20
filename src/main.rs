@@ -11,9 +11,41 @@ use rocket::http::Method;
 
 use rocket::response::status::BadRequest;
 use rocket_contrib::json::{Json, JsonValue};
-use rocket_cors::{AllowedHeaders, AllowedOrigins, Error};
+use rocket_cors::Error;
 
-use rocket::Request;
+use rocket::fairing::{Fairing, Info, Kind};
+use rocket::http::{ContentType, Header};
+use rocket::{Request, Response};
+use std::io::Cursor;
+
+pub struct CORS();
+
+impl Fairing for CORS {
+    fn info(&self) -> Info {
+        Info {
+            name: "Add CORS headers to requests",
+            kind: Kind::Response,
+        }
+    }
+
+    fn on_response(&self, request: &Request, response: &mut Response) {
+        if request.method() == Method::Options || response.content_type() == Some(ContentType::JSON)
+        {
+            response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+            response.set_header(Header::new(
+                "Access-Control-Allow-Methods",
+                "POST, GET, OPTIONS",
+            ));
+            response.set_header(Header::new("Access-Control-Allow-Headers", "Content-Type"));
+            response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+        }
+
+        if request.method() == Method::Options {
+            response.set_header(ContentType::Plain);
+            response.set_sized_body(Cursor::new(""));
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize)]
 struct TransformRequest {
@@ -33,6 +65,11 @@ fn transform_go_struct_to_flow(
     }
 }
 
+#[options("/gostruct/to/flow")]
+fn optionroute() -> &'static str {
+    "Hello, world!"
+}
+
 #[get("/")]
 fn index() -> &'static str {
     "Hello, world!"
@@ -47,23 +84,13 @@ fn not_found(req: &Request) -> JsonValue {
 }
 
 fn main() -> Result<(), Error> {
-    let allowed_origins = AllowedOrigins::All;
-    let cors = rocket_cors::CorsOptions {
-        allowed_origins,
-        allowed_methods: vec![Method::Get, Method::Post, Method::Options]
-            .into_iter()
-            .map(From::from)
-            .collect(),
-        allowed_headers: AllowedHeaders::some(&["Authorization", "Accept"]),
-        allow_credentials: true,
-        ..Default::default()
-    }
-    .to_cors()?;
     rocket::ignite()
-        .mount("/api/v1", routes![index, transform_go_struct_to_flow])
-        .mount("/", rocket_cors::catch_all_options_routes()) // mount the catch all routes
+        .mount(
+            "/api/v1",
+            routes![index, transform_go_struct_to_flow, optionroute],
+        )
         .register(catchers![not_found])
-        .manage(cors)
+        .attach(CORS())
         .launch();
 
     Ok(())

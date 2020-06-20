@@ -11,7 +11,6 @@ use rocket::http::Method;
 
 use rocket::response::status::BadRequest;
 use rocket_contrib::json::{Json, JsonValue};
-use rocket_cors::Error;
 
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::{ContentType, Header};
@@ -83,7 +82,7 @@ fn not_found(req: &Request) -> JsonValue {
     })
 }
 
-fn main() -> Result<(), Error> {
+fn main() {
     rocket::ignite()
         .mount(
             "/api/v1",
@@ -92,6 +91,4 @@ fn main() -> Result<(), Error> {
         .register(catchers![not_found])
         .attach(CORS())
         .launch();
-
-    Ok(())
 }

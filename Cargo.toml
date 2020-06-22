@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 rocket = "0.4.5"
-js_typify_gostruct = "0.2.0"
+js_typify_gostruct = "0.3.1"
 serde = "1.0"
 serde_json = "1.0"
 serde_derive = "1.0"

@@ -55,7 +55,20 @@ struct TransformRequest {
 fn transform_go_struct_to_flow(
     data: Json<TransformRequest>,
 ) -> Result<JsonValue, BadRequest<JsonValue>> {
-    match js_typify_gostruct::transform(data.contents.to_string()) {
+    match js_typify_gostruct::transform_to_flow(data.contents.to_string()) {
+        Ok(res) => Ok(json!({ "data": res })),
+        Err(parse_error) => Err(BadRequest(Some(json!({
+            "status": "error",
+            "reason": format!("{:?}", parse_error)
+        })))),
+    }
+}
+
+#[post("/gostruct/to/typescript", format = "json", data = "<data>")]
+fn transform_go_struct_to_typescript(
+    data: Json<TransformRequest>,
+) -> Result<JsonValue, BadRequest<JsonValue>> {
+    match js_typify_gostruct::transform_to_typescript(data.contents.to_string()) {
         Ok(res) => Ok(json!({ "data": res })),
         Err(parse_error) => Err(BadRequest(Some(json!({
             "status": "error",
@@ -65,7 +78,12 @@ fn transform_go_struct_to_flow(
 }
 
 #[options("/gostruct/to/flow")]
-fn optionroute() -> &'static str {
+fn optionflowroute() -> &'static str {
+    "Hello, world!"
+}
+
+#[options("/gostruct/to/typescript")]
+fn optiontypescriptroute() -> &'static str {
     "Hello, world!"
 }
 
@@ -86,7 +104,13 @@ fn main() {
     rocket::ignite()
         .mount(
             "/api/v1",
-            routes![index, transform_go_struct_to_flow, optionroute],
+            routes![
+                index,
+                transform_go_struct_to_flow,
+                transform_go_struct_to_typescript,
+                optionflowroute,
+                optiontypescriptroute
+            ],
         )
         .register(catchers![not_found])
         .attach(CORS())

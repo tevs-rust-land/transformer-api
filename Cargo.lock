@@ -443,9 +443,9 @@ checksum = "b8b7a7c0c47db5545ed3fef7468ee7bb5b74691498139e4b3f6a20685dc6dd8e"
 
 [[package]]
 name = "js_typify_gostruct"
-version = "0.3.1"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "676e6ff2df3fb7154373a356ae646b5f6ac3e2c50a19bf1f69d4082397bdd651"
+checksum = "228e4ee59e7734d7dd42618eb1cff8c7dc63785f1d98e13e24524afb57a6e96f"
 dependencies = [
  "itertools",
 ]
